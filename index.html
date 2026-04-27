@@ -1,0 +1,1127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leaderboard</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+
+    <style>
+      :root{
+        --bg: #efeff1;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --shadow: 0 4px 10px rgba(0,0,0,0.08);
+        --shadow-soft: 0 2px 6px rgba(0,0,0,0.08);
+        --radius: 10px;
+
+        --blue: #20a3da;
+        --blue-soft: rgba(32, 163, 218, 0.12);
+
+        --gold: #caa640;
+        --gold-soft: rgba(202, 166, 64, 0.22);
+
+        --input-border: #9ca3af;
+        --focus: rgba(32, 163, 218, 0.35);
+      }
+
+      *{ box-sizing: border-box; }
+      html, body { height: 100%; }
+      body{
+        margin: 0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        color: var(--text);
+        background: var(--bg);
+      }
+
+      .page{
+        width: min(1100px, calc(100% - 56px));
+        margin: 24px auto 60px;
+      }
+
+      .header{
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      .header__title{
+        font-size: 28px;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        margin: 0;
+        font-weight: 800;
+      }
+
+      .header__subtitle{
+        margin: 8px 0 0;
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 500;
+      }
+
+      .filters{
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-soft);
+        padding: 16px;
+        margin-bottom: 18px;
+      }
+
+      .filters__row{
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .dd{ position: relative; }
+
+      .dd__btn{
+        height: 32px;
+        min-width: 110px;
+        padding: 0 10px;
+        background: #f3f4f6;
+        border: 1px solid #9ca3af;
+        border-radius: 2px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #111827;
+        cursor: pointer;
+      }
+
+      .dd__btn--active{
+        background: #e5e7eb;
+      }
+
+      .dd__btn--activeBlue{
+        background: #dff1fb;
+        border-color: rgba(32,163,218,0.65);
+      }
+
+      .dd__chev{
+        font-size: 11px;
+        color: #6b7280;
+      }
+
+      .dd__menu{
+        position: absolute;
+        left: 0;
+        top: 36px;
+        width: 160px;
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.16);
+        border-radius: 2px;
+        padding: 6px 0;
+        display: none;
+        z-index: 20;
+      }
+
+      .dd[data-open="true"] .dd__menu{ display: block; }
+      .dd[data-open="true"] .dd__btn{ background: #e5e7eb; }
+
+      .dd__item{
+        width: 100%;
+        border: 0;
+        background: transparent;
+        text-align: left;
+        padding: 8px 10px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #111827;
+        cursor: pointer;
+      }
+      .dd__item:hover{ background: #e5e7eb; }
+      .dd__item--active{ font-weight: 700; }
+
+      .search{
+        flex: 1 1 420px;
+        height: 32px;
+        border-radius: 2px;
+        border: 1px solid #111827;
+        background: #e5e7eb;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 10px;
+        min-width: 260px;
+      }
+
+      .search__icon{
+        font-size: 12px;
+        color: #111827;
+        opacity: 0.7;
+      }
+
+      .search__input{
+        border: 0;
+        outline: none;
+        flex: 1;
+        font-size: 12px;
+        font-weight: 500;
+        color: #111827;
+        background: transparent;
+      }
+      .search__input::placeholder{ color: #6b7280; font-weight: 500; }
+
+      .dd__btn:focus-visible,
+      .search:focus-within{
+        outline: 3px solid var(--focus);
+        outline-offset: 2px;
+      }
+
+      .content{
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 22px;
+      }
+
+      .podium__wrap{
+        padding: 18px 8px 0;
+      }
+
+      .podium__people{
+        display: grid;
+        grid-template-columns: 220px 260px 220px;
+        align-items: start;
+        gap: 16px;
+        margin-top: 6px;
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .topPerson{
+        text-align: center;
+        position: relative;
+      }
+
+      .topPerson__avatar{
+        width: 84px;
+        height: 84px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #d1d5db;
+        color: rgba(17,24,39,0.65);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        position: relative;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+        border: 3px solid #f3f4f6;
+      }
+
+      .topPerson__avatar--gold{
+        border-color: #d8b14b;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.18), 0 0 0 2px rgba(216,177,75,0.65);
+      }
+
+      .topPerson__badge{
+        position: absolute;
+        right: -2px;
+        bottom: -2px;
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 800;
+        color: #fff;
+        border: 3px solid #f3f4f6;
+      }
+
+      .topPerson__badge--gold{ background: #d8b14b; color: #111827; }
+      .topPerson__badge--gray{ background: #6b7280; }
+      .topPerson__badge--brown{ background: #8b5a2b; }
+
+      .topPerson__name{
+        margin: 10px 0 0;
+        font-size: 17px;
+        font-weight: 800;
+        color: #111827;
+      }
+
+      .topPerson__role{
+        margin: 6px 0 0;
+        font-size: 11px;
+        color: #6b7280;
+        font-weight: 500;
+      }
+
+      .scorePill{
+        margin: 10px auto 0;
+        height: 30px;
+        padding: 0 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(0,0,0,0.08);
+        background: #f3f4f6;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+        font-weight: 800;
+        font-size: 13px;
+      }
+      .scorePill__icon{ font-size: 13px; }
+      .scorePill--gold{
+        background: #f6e9b7;
+      }
+      .scorePill--gold .scorePill__icon{ color: var(--gold); }
+      .scorePill--blue .scorePill__icon{ color: var(--blue); }
+      .scorePill--blue{ background: #f3f4f6; }
+
+      .podium__blocks{
+        display: grid;
+        grid-template-columns: 220px 260px 220px;
+        gap: 16px;
+        margin: 16px auto 0;
+        width: fit-content;
+        align-items: end;
+      }
+
+      .block{
+        height: 150px;
+        border-radius: 4px;
+        background: #cdd5df;
+        box-shadow:
+          inset 0 2px 0 rgba(0,0,0,0.10),
+          0 1px 0 rgba(255,255,255,0.55);
+        position: relative;
+        overflow: hidden;
+      }
+      .block--center{
+        height: 175px;
+        background: linear-gradient(#f7edc5, #f3d978);
+        border-top: 3px solid #e8c86a;
+      }
+
+      .block__num{
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 96px;
+        font-weight: 800;
+        color: rgba(17,24,39,0.12);
+      }
+
+      .rows{
+        display: grid;
+        gap: 12px;
+        padding: 0 0 10px;
+      }
+
+      .rowCard{
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-soft);
+        padding: 14px 16px;
+        display: grid;
+        grid-template-columns: 32px 1fr auto auto auto;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .rowCard--expanded{
+        border-color: rgba(32,163,218,0.65);
+        box-shadow: 0 0 0 2px rgba(32,163,218,0.35), var(--shadow-soft);
+      }
+
+      .rowCard__rank{
+        font-weight: 700;
+        color: #6b7280;
+        font-size: 14px;
+      }
+
+      .rowCard__person{
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .rowCard__avatar{
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        background: #d1d5db;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: rgba(17,24,39,0.65);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.14);
+      }
+
+      .rowCard__name{
+        margin: 0;
+        font-weight: 800;
+        font-size: 13px;
+        color: #111827;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .rowCard__role{
+        margin: 4px 0 0;
+        font-size: 11px;
+        color: #6b7280;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .rowCard__stars{
+        width: 54px;
+        display: grid;
+        justify-items: center;
+        row-gap: 6px;
+        color: #111827;
+      }
+      .rowCard__stars i{
+        color: var(--blue);
+        font-size: 14px;
+        opacity: 0.65;
+      }
+      .rowCard__stars span{
+        font-size: 11px;
+        font-weight: 700;
+        color: #111827;
+        opacity: 0.8;
+      }
+
+      .rowCard__total{
+        width: 120px;
+        display: grid;
+        justify-items: end;
+        row-gap: 3px;
+      }
+      .rowCard__totalLabel{
+        font-size: 10px;
+        color: #9ca3af;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .rowCard__totalScore{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 800;
+        font-size: 20px;
+        color: var(--blue);
+      }
+      .rowCard__totalScore i{
+        color: var(--blue);
+        font-size: 18px;
+      }
+
+      .rowCard__chev{
+        width: 30px;
+        height: 30px;
+        border-radius: 999px;
+        border: 0;
+        background: #e5f4fb;
+        color: var(--blue);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .rowCard__chev i{ font-size: 12px; }
+
+      .rowCard--expanded .rowCard__chev i{
+        transform: rotate(180deg);
+      }
+
+      .rowCard__details{
+        grid-column: 1 / -1;
+        margin-top: 12px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(229,231,235,0.9);
+        display: none;
+      }
+      .rowCard--expanded .rowCard__details{ display: block; }
+
+      .detailsTitle{
+        font-size: 11px;
+        font-weight: 800;
+        color: #6b7280;
+        letter-spacing: 0.02em;
+        margin: 0 0 10px;
+        text-transform: uppercase;
+      }
+
+      .activityTable{
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+      .activityTable th{
+        text-align: left;
+        font-size: 11px;
+        font-weight: 800;
+        color: #9ca3af;
+        padding: 10px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+      }
+      .activityTable td{
+        padding: 12px 0;
+        border-top: 1px solid rgba(229,231,235,0.8);
+        font-size: 12px;
+        color: #111827;
+        vertical-align: middle;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .activityTable th:nth-child(2),
+      .activityTable td:nth-child(2){ width: 140px; }
+      .activityTable th:nth-child(3),
+      .activityTable td:nth-child(3){ width: 110px; text-align: left; color: #6b7280; }
+      .activityTable th:nth-child(4),
+      .activityTable td:nth-child(4){ width: 80px; text-align: right; }
+
+      .catPill{
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        color: #374151;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .pts{
+        font-weight: 800;
+        color: var(--blue);
+      }
+
+      .empty{
+        padding: 26px 16px 28px;
+        color: var(--muted);
+        font-weight: 650;
+        text-align: center;
+      }
+
+      @media (max-width: 980px){
+        .podium__people, .podium__blocks{
+          grid-template-columns: 1fr;
+        }
+        .podium__blocks{ gap: 10px; }
+        .block{ border-radius: 6px; }
+      }
+
+      @media (max-width: 720px){
+        .page{ width: min(1100px, calc(100% - 28px)); margin-top: 18px; }
+
+        .filters{ padding: 14px; }
+        .search{ min-width: 200px; }
+
+        .rowCard{
+          grid-template-columns: 26px 1fr auto;
+          grid-template-areas:
+            "rank person total"
+            "rank person chev";
+          align-items: start;
+        }
+        .rowCard__rank{ grid-area: rank; padding-top: 6px; }
+        .rowCard__person{ grid-area: person; }
+        .rowCard__total{ grid-area: total; }
+        .rowCard__chev{ grid-area: chev; justify-self: end; margin-top: 10px; }
+        .rowCard__stars{ display: none; }
+
+        .activityTable th:nth-child(2),
+        .activityTable td:nth-child(2){ width: 120px; }
+        .activityTable th:nth-child(3),
+        .activityTable td:nth-child(3){ width: 96px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="header">
+        <div class="header__text">
+          <h1 class="header__title">Leaderboard</h1>
+          <p class="header__subtitle">
+            Top performers based on contributions and activity
+          </p>
+        </div>
+      </header>
+
+      <section class="filters" aria-label="Filters">
+        <div class="filters__row">
+          <div class="dd" data-dd="year">
+            <button class="dd__btn" type="button" aria-haspopup="menu" aria-expanded="false">
+              <span>All Years</span>
+              <i class="fa-solid fa-chevron-down dd__chev" aria-hidden="true"></i>
+            </button>
+            <div class="dd__menu" role="menu" aria-label="Years">
+              <button class="dd__item" type="button" role="menuitem">All Years</button>
+              <button class="dd__item" type="button" role="menuitem">2025</button>
+            </div>
+          </div>
+
+          <div class="dd" data-dd="quarter">
+            <button class="dd__btn" type="button" aria-haspopup="menu" aria-expanded="false">
+              <span>All Quarters</span>
+              <i class="fa-solid fa-chevron-down dd__chev" aria-hidden="true"></i>
+            </button>
+            <div class="dd__menu" role="menu" aria-label="Quarters">
+              <button class="dd__item" type="button" role="menuitem">All Quarters</button>
+              <button class="dd__item" type="button" role="menuitem">Q1</button>
+              <button class="dd__item" type="button" role="menuitem">Q2</button>
+              <button class="dd__item" type="button" role="menuitem">Q3</button>
+              <button class="dd__item" type="button" role="menuitem">Q4</button>
+            </div>
+          </div>
+
+          <div class="dd" data-dd="category">
+            <button
+              id="categoryBtn"
+              class="dd__btn dd__btn--activeBlue"
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded="false"
+            >
+              <span id="categoryLabel">Public Speaking</span>
+              <i class="fa-solid fa-chevron-down dd__chev" aria-hidden="true"></i>
+            </button>
+            <div class="dd__menu" role="menu" aria-label="Categories">
+              <button class="dd__item" type="button" role="menuitem">All Categories</button>
+              <button class="dd__item" type="button" role="menuitem">Education</button>
+              <button class="dd__item dd__item--active" type="button" role="menuitem">Public Speaking</button>
+              <button class="dd__item" type="button" role="menuitem">University Partners...</button>
+              <button class="dd__item" type="button" role="menuitem">Mentorship</button>
+              <button class="dd__item" type="button" role="menuitem">Open Source</button>
+              <button class="dd__item" type="button" role="menuitem">Hackathons</button>
+            </div>
+          </div>
+
+          <div class="search">
+            <i class="fa-solid fa-magnifying-glass search__icon" aria-hidden="true"></i>
+            <input
+              id="searchInput"
+              class="search__input"
+              type="search"
+              placeholder="Search employee..."
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </div>
+        </div>
+      </section>
+
+      <main class="content">
+        <section class="podium" aria-label="Top performers">
+          <div class="podium__wrap">
+            <div id="podiumPeople" class="podium__people"></div>
+            <div id="podiumBlocks" class="podium__blocks" aria-hidden="true"></div>
+          </div>
+        </section>
+
+        <section class="list" aria-label="Ranking list">
+          <div id="rows" class="rows" role="list"></div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const EMPLOYEES = [
+        {
+          id: "musk",
+          name: "Elon Musk",
+          role: "Chief Engineer (SF.T1.MARS)",
+          dept: "Core Engineering (US.R1.D3)",
+          score: 536,
+          stars: 17,
+        },
+        {
+          id: "bezos",
+          name: "Jeff Bezos",
+          role: "Senior Principal (SEA.G6.K)",
+          dept: "Systems Design (US.R2.D1)",
+          score: 328,
+          stars: 10,
+        },
+        {
+          id: "nadella",
+          name: "Satya Nadella",
+          role: "Cloud Architect (RED.0X.AI)",
+          dept: "Cloud Platform (IN.F2.G7)",
+          score: 200,
+          stars: 4,
+        },
+        {
+          id: "arnault",
+          name: "Bernard Arnault",
+          role: "LVMH Innovation Lead (PAR.F8.L)",
+          dept: "Innovation Lab (FR.P7.D2)",
+          score: 189,
+          stars: 3,
+        },
+        {
+          id: "zuckerberg",
+          name: "Mark Zuckerberg",
+          role: "Metaverse Director (MPK.1.META)",
+          dept: "XR Platforms (US.R3.D4)",
+          score: 154,
+          stars: 2,
+        },
+        {
+          id: "buffett",
+          name: "Warren Buffett",
+          role: "Investment Advisor (OMA.G3.V)",
+          dept: "Strategy Office (US.R4.D1)",
+          score: 98,
+          stars: 1,
+        },
+        {
+          id: "huang",
+          name: "Jensen Huang",
+          role: "GPU Architect (SJ.CUDA.NV)",
+          dept: "Accelerated Computing (US.R2.D6)",
+          score: 312,
+          stars: 9,
+        },
+        {
+          id: "swift",
+          name: "Taylor Swift",
+          role: "Creative Engineer (NASH.ERAS.TS)",
+          dept: "Creative Technology (US.R5.D2)",
+          score: 277,
+          stars: 7,
+        },
+        {
+          id: "williams",
+          name: "Serena Williams",
+          role: "Leadership Coach (MIA.ACE.W)",
+          dept: "Talent Development (US.R6.D1)",
+          score: 145,
+          stars: 2,
+        },
+        {
+          id: "ronaldo",
+          name: "Cristiano Ronaldo",
+          role: "Sports Tech Lead (SAU.SIU.CR)",
+          dept: "Wearables & Sensors (ME.R1.D5)",
+          score: 212,
+          stars: 5,
+        },
+      ];
+
+      let selectedCategory = "Public Speaking";
+      let searchQuery = "";
+
+      const activityCache = new Map();
+      const ACTIVITY_TEMPLATES = [
+        { prefix: "[TALK]", category: "Public Speaking", title: "Tech keynote / Q&A" },
+        { prefix: "[EDU]", category: "Education", title: "Workshop / learning session" },
+        { prefix: "[OSS]", category: "Open Source", title: "Open-source contribution" },
+        { prefix: "[MENT]", category: "Mentorship", title: "Mentorship / coaching session" },
+        { prefix: "[HACK]", category: "Hackathons", title: "Hackday / sprint demo" },
+        { prefix: "[UP]", category: "University Partners...", title: "University guest lecture" },
+      ];
+
+      function seedFromId(id) {
+        let h = 0;
+        for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+        return h;
+      }
+
+      function formatDate(d) {
+        const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        const dd = String(d.getDate()).padStart(2, "0");
+        return `${dd}-${months[d.getMonth()]}-${d.getFullYear()}`;
+      }
+
+      function generateActivities({ id, score, stars }) {
+        const desiredCount = Math.max(1, Number(stars) || 1);
+        const total = Math.max(0, Number(score) || 0);
+        const seed = seedFromId(id);
+
+        let remaining = total;
+        const pointsPattern = [64, 32, 16, 8];
+        const baseDate = new Date(2025, 11, 17); // 17-Dec-2025
+
+        const acts = [];
+        for (let i = 0; i < desiredCount; i++) {
+          const left = desiredCount - i;
+          let pts;
+          if (left === 1) {
+            pts = remaining;
+          } else {
+            const target = pointsPattern[(seed + i) % pointsPattern.length];
+            const maxForThis = remaining - (left - 1); // keep at least 1 point per remaining row
+            pts = Math.min(target, maxForThis);
+          }
+          remaining -= pts;
+
+          const t = ACTIVITY_TEMPLATES[(seed + i) % ACTIVITY_TEMPLATES.length];
+          const d = new Date(baseDate);
+          d.setDate(baseDate.getDate() - i * 7);
+          const short = `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getFullYear()).slice(-2)}`;
+
+          acts.push({
+            title: `${t.prefix} ${t.title} (${short})`,
+            category: t.category,
+            date: formatDate(d),
+            points: pts,
+          });
+        }
+        return acts;
+      }
+
+      function getActivitiesForEmployee(employee) {
+        const key = `${employee.id}:${employee.score}:${employee.stars}`;
+        if (activityCache.has(key)) return activityCache.get(key);
+        const acts = generateActivities(employee);
+        activityCache.set(key, acts);
+        return acts;
+      }
+
+      function initials(name) {
+        const parts = name.trim().split(/\s+/).slice(0, 2);
+        return parts.map((p) => p[0]?.toUpperCase() ?? "").join("");
+      }
+
+      function fmtDate(dateStr) {
+        return dateStr;
+      }
+
+      function sortByScoreDesc(list) {
+        return [...list].sort((a, b) => b.score - a.score);
+      }
+
+      const totalsCache = new Map();
+      function getTotalsForEmployee(employee, category) {
+        const key = `${employee.id}::${category || "All Categories"}`;
+        if (totalsCache.has(key)) return totalsCache.get(key);
+
+        const actsAll = getActivitiesForEmployee(employee);
+        const acts =
+          !category || category === "All Categories"
+            ? actsAll
+            : actsAll.filter((a) => (a.category ?? "") === category);
+
+        const score = acts.reduce((sum, a) => sum + (Number(a.points) || 0), 0);
+        const activityCount = acts.reduce((cnt, a) => cnt + ((Number(a.points) || 0) > 0 ? 1 : 0), 0);
+        const res = { score, stars: activityCount };
+        totalsCache.set(key, res);
+        return res;
+      }
+
+      function withComputedTotals(employee) {
+        const t = getTotalsForEmployee(employee, selectedCategory);
+        return { ...employee, score: t.score, stars: t.stars };
+      }
+
+      function createTopPerson(person, rank) {
+        const wrap = document.createElement("div");
+        wrap.className = "topPerson";
+
+        const avatarClass =
+          rank === 1 ? "topPerson__avatar topPerson__avatar--gold" : "topPerson__avatar";
+        const badgeClass =
+          rank === 1
+            ? "topPerson__badge topPerson__badge--gold"
+            : rank === 2
+              ? "topPerson__badge topPerson__badge--gray"
+              : "topPerson__badge topPerson__badge--brown";
+        const pillClass = rank === 1 ? "scorePill scorePill--gold" : "scorePill scorePill--blue";
+
+        wrap.innerHTML = `
+          <div class="${avatarClass}" aria-hidden="true">
+            ${initials(person.name)}
+            <span class="${badgeClass}">${rank}</span>
+          </div>
+          <div class="topPerson__name">${person.name}</div>
+          <div class="topPerson__role">${person.role}</div>
+          <div class="${pillClass}">
+            <i class="fa-solid fa-star scorePill__icon" style="color:${rank === 1 ? "var(--gold)" : "var(--blue)"}" aria-hidden="true"></i>
+            <span>${person.score.toLocaleString()}</span>
+          </div>
+        `;
+
+        return wrap;
+      }
+
+      function createPodiumBlocks() {
+        const blocks = document.createElement("div");
+        blocks.className = "podium__blocks";
+        blocks.innerHTML = `
+          <div class="block"><div class="block__num">2</div></div>
+          <div class="block block--center"><div class="block__num">1</div></div>
+          <div class="block"><div class="block__num">3</div></div>
+        `;
+        return blocks;
+      }
+
+      function createRowCard(person, rank) {
+        const row = document.createElement("div");
+        row.className = "rowCard";
+        row.setAttribute("role", "listitem");
+        row.dataset.id = person.id;
+
+        const actsAll = getActivitiesForEmployee(person);
+        const actsFiltered =
+          !selectedCategory || selectedCategory === "All Categories"
+            ? actsAll
+            : actsAll.filter((a) => (a.category ?? "") === selectedCategory);
+        const acts = actsFiltered.slice(0, 20);
+        const actRows = acts
+          .map((a) => {
+            const safeTitle = String(a.title ?? "").replaceAll('"', "&quot;");
+            return `
+              <tr>
+                <td title="${safeTitle}">${safeTitle}</td>
+                <td><span class="catPill">${a.category}</span></td>
+                <td>${fmtDate(a.date)}</td>
+                <td class="pts">+${a.points}</td>
+              </tr>
+            `;
+          })
+          .join("");
+
+        row.innerHTML = `
+          <div class="rowCard__rank">${rank}</div>
+          <div class="rowCard__person">
+            <span class="rowCard__avatar" aria-hidden="true">${initials(person.name)}</span>
+            <div style="min-width:0">
+              <p class="rowCard__name">${person.name}</p>
+              <p class="rowCard__role">${person.role}</p>
+            </div>
+          </div>
+          <div class="rowCard__stars" aria-label="Stars">
+            <i class="fa-solid fa-desktop" aria-hidden="true"></i>
+            <span>${person.stars}</span>
+          </div>
+          <div class="rowCard__total">
+            <div class="rowCard__totalLabel">TOTAL</div>
+            <div class="rowCard__totalScore">
+              <i class="fa-solid fa-star" aria-hidden="true"></i>
+              <span>${person.score.toLocaleString()}</span>
+            </div>
+          </div>
+          <button class="rowCard__chev" type="button" aria-label="Expand" aria-expanded="false">
+            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+          </button>
+          <div class="rowCard__details" role="region" aria-label="Recent Activity">
+            <p class="detailsTitle">RECENT ACTIVITY</p>
+            <table class="activityTable">
+              <thead>
+                <tr>
+                  <th>Activity</th>
+                  <th>Category</th>
+                  <th>Date</th>
+                  <th style="text-align:right">Points</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${actRows || `<tr><td colspan="4" style="color:#6b7280">No activity available.</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        return row;
+      }
+
+      function render(employees) {
+        const podiumPeopleEl = document.getElementById("podiumPeople");
+        const podiumBlocksEl = document.getElementById("podiumBlocks");
+        const rowsEl = document.getElementById("rows");
+        if (!podiumPeopleEl || !podiumBlocksEl || !rowsEl) return;
+
+        podiumPeopleEl.innerHTML = "";
+        podiumBlocksEl.innerHTML = "";
+        rowsEl.innerHTML = "";
+
+        const sorted = sortByScoreDesc(employees);
+        const top3 = sorted.slice(0, 3);
+        const rest = sorted;
+
+        const [first, second, third] = top3;
+        if (second) podiumPeopleEl.appendChild(createTopPerson(second, 2));
+        if (first) podiumPeopleEl.appendChild(createTopPerson(first, 1));
+        if (third) podiumPeopleEl.appendChild(createTopPerson(third, 3));
+        podiumBlocksEl.appendChild(createPodiumBlocks());
+
+        if (rest.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = "No employees match your search.";
+          rowsEl.appendChild(empty);
+          return;
+        }
+
+        rest.forEach((p, i) => rowsEl.appendChild(createRowCard(p, i + 1)));
+      }
+
+      function getVisibleEmployees() {
+        totalsCache.clear();
+        activityCache.clear();
+        let list = EMPLOYEES.map(withComputedTotals);
+
+        if (selectedCategory && selectedCategory !== "All Categories") {
+          // Keep only employees with at least one activity in this category
+          list = list.filter((e) => (Number(e.score) || 0) > 0);
+        }
+
+        const q = String(searchQuery ?? "").trim().toLowerCase();
+        if (q) {
+          const sortedAll = sortByScoreDesc(list);
+          const rankById = new Map(sortedAll.map((e, idx) => [e.id, String(idx + 1)]));
+
+          const tokens = q.split(/\s+/).filter(Boolean);
+
+          const extractUnits = (text) => {
+            const units = [];
+            const re = /\(([^)]+)\)/g;
+            let m;
+            while ((m = re.exec(text))) units.push(m[1]);
+            return units;
+          };
+
+          list = list.filter((e) => {
+            const name = (e.name ?? "").toLowerCase();
+            const role = (e.role ?? "").toLowerCase();
+            const dept = (e.dept ?? "").toLowerCase();
+            const rank = rankById.get(e.id) ?? "";
+            const units = extractUnits(`${e.role ?? ""} ${e.dept ?? ""}`.toLowerCase());
+
+            return tokens.every((t) => {
+              if (!t) return true;
+              if (t === rank || t === `#${rank}`) return true;
+              if (name.includes(t)) return true;
+              if (role.includes(t)) return true;
+              if (dept.includes(t)) return true;
+              if (units.some((u) => u.toLowerCase().includes(t))) return true;
+              return false;
+            });
+          });
+        }
+
+        return list;
+      }
+
+      function update() {
+        render(getVisibleEmployees());
+      }
+
+      function bindSearch() {
+        const input = document.getElementById("searchInput");
+        if (!input) return;
+
+        const onChange = () => {
+          searchQuery = input.value ?? "";
+          update();
+        };
+
+        input.addEventListener("input", onChange);
+      }
+
+      function bindDropdowns() {
+        const dds = Array.from(document.querySelectorAll(".dd"));
+        if (dds.length === 0) return;
+
+        const closeAll = () => dds.forEach((dd) => dd.removeAttribute("data-open"));
+
+        dds.forEach((dd) => {
+          const btn = dd.querySelector(".dd__btn");
+          if (!btn) return;
+
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isOpen = dd.getAttribute("data-open") === "true";
+            closeAll();
+            if (!isOpen) dd.setAttribute("data-open", "true");
+            btn.setAttribute("aria-expanded", String(!isOpen));
+          });
+
+          dd.querySelectorAll(".dd__item").forEach((item) => {
+            item.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const kind = dd.getAttribute("data-dd");
+              if (kind === "year" || kind === "quarter") {
+                console.log("filter by year/quarter – no backend");
+              }
+              if (kind === "category") {
+                const label = item.textContent?.trim() || "All Categories";
+                selectedCategory = label;
+
+                const labelEl = document.getElementById("categoryLabel");
+                if (labelEl) labelEl.textContent = label;
+
+                dd.querySelectorAll(".dd__item").forEach((it) => it.classList.remove("dd__item--active"));
+                item.classList.add("dd__item--active");
+
+                const btn = document.getElementById("categoryBtn");
+                if (btn) btn.classList.toggle("dd__btn--activeBlue", selectedCategory === "Public Speaking");
+
+                update();
+              }
+              closeAll();
+              btn.setAttribute("aria-expanded", "false");
+            });
+          });
+        });
+
+        document.addEventListener("click", closeAll);
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") closeAll();
+        });
+      }
+
+      function bindRowExpand() {
+        const rowsEl = document.getElementById("rows");
+        if (!rowsEl) return;
+
+        rowsEl.addEventListener("click", (e) => {
+          const btn = e.target?.closest?.(".rowCard__chev");
+          if (!btn) return;
+          const card = btn.closest(".rowCard");
+          if (!card) return;
+
+          const expanded = card.classList.toggle("rowCard--expanded");
+          btn.setAttribute("aria-expanded", String(expanded));
+        });
+      }
+
+      update();
+      bindSearch();
+      bindDropdowns();
+      bindRowExpand();
+      // category filter is handled via dropdown selection
+    </script>
+  </body>
+</html>
